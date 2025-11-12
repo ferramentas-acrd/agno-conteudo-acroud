@@ -6,7 +6,7 @@ Usa GPT-4 Turbo da OpenAI para máxima qualidade
 
 import os
 from agno.agent import Agent
-from agno.models import OpenAIChat
+from agno.models.openai import OpenAIChat
 from dotenv import load_dotenv
 
 load_dotenv()

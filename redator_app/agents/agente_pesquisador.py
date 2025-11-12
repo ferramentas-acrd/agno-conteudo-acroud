@@ -6,7 +6,7 @@ Usa GPT-4 Turbo da OpenAI para análise inteligente
 
 import os
 from agno.agent import Agent
-from agno.models import OpenAIChat
+from agno.models.openai import OpenAIChat
 from agno.tools.tavily import TavilyTools
 from dotenv import load_dotenv
 
