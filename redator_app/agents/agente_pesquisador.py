@@ -5,10 +5,16 @@ Usa GPT-4 Turbo da OpenAI para análise inteligente
 """
 
 import os
+import sys
+from pathlib import Path
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
 from agno.tools.tavily import TavilyTools
 from dotenv import load_dotenv
+
+# Adicionar o diretório pai ao path para importar config
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config.instrucoes_globais import get_instrucoes_globais
 
 load_dotenv()
 
@@ -17,19 +23,37 @@ class AgentePesquisador:
     
     def __init__(self):
         """Inicializa o agente pesquisador com GPT-4 Turbo e ferramentas Tavily"""
+        
+        # Obter instruções globais
+        instrucoes_globais = get_instrucoes_globais()
+        
+        # Instruções específicas do pesquisador
+        instrucoes_pesquisador = [
+            "Você é um pesquisador especializado em coletar informações detalhadas e atualizadas.",
+            "Sempre busque as informações mais recentes e relevantes sobre o tema solicitado.",
+            "PRIORIZE as fontes confiáveis listadas nas instruções globais.",
+            "Cite todas as fontes encontradas com URLs entre parênteses.",
+            "Organize as informações de forma estruturada.",
+            "Foque em dados, estatísticas e fatos verificáveis.",
+            "Identifique tendências atuais relacionadas ao tema.",
+            "Para iGaming, busque dados sobre casas de apostas LICENCIADAS pela Lei 14.790/23.",
+            "Sempre inclua contexto geográfico (Brasil) e temporal (ano/mês atual).",
+            "Responda sempre em português do Brasil."
+        ]
+        
+        # Combinar instruções globais com específicas
+        instrucoes_completas = [
+            instrucoes_globais,
+            "---",
+            "INSTRUÇÕES ESPECÍFICAS DO PESQUISADOR:",
+            *instrucoes_pesquisador
+        ]
+        
         self.agent = Agent(
-            name="Agente Pesquisador",
+            name="Agente Pesquisador - iGaming Brasil",
             model=OpenAIChat(id="gpt-4-turbo-preview"),
             tools=[TavilyTools()],
-            instructions=[
-                "Você é um pesquisador especializado em coletar informações detalhadas e atualizadas.",
-                "Sempre busque as informações mais recentes e relevantes sobre o tema solicitado.",
-                "Cite todas as fontes encontradas.",
-                "Organize as informações de forma estruturada.",
-                "Foque em dados, estatísticas e fatos verificáveis.",
-                "Identifique tendências atuais relacionadas ao tema.",
-                "Responda sempre em português."
-            ],
+            instructions=instrucoes_completas,
             markdown=True,
             add_datetime_to_context=True
         )

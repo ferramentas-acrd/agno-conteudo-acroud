@@ -5,31 +5,62 @@ Usa GPT-4 Turbo da OpenAI para máxima qualidade
 """
 
 import os
+import sys
+from pathlib import Path
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
 from dotenv import load_dotenv
 
+# Adicionar o diretório pai ao path para importar config
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config.instrucoes_globais import get_instrucoes_globais
+
 load_dotenv()
 
 class AgenteRedator:
-    """Agente especializado em criar conteúdo otimizado para SEO"""
+    """Agente especializado em criar conteúdo otimizado para SEO - iGaming Brasil"""
     
     def __init__(self):
-        """Inicializa o agente redator com GPT-4 Turbo"""
+        """Inicializa o agente redator com GPT-4 Turbo e instruções globais"""
+        
+        # Obter instruções globais (ABSOLUTAS E IMUTÁVEIS)
+        instrucoes_globais = get_instrucoes_globais()
+        
+        # Instruções específicas do redator
+        instrucoes_redator = [
+            "Você é um redator profissional especializado em iGaming e SEO.",
+            "SEMPRE aplique o checklist pré-publicação das instruções globais.",
+            "Use parágrafos de ~50 palavras cada para dinamismo.",
+            "Prefira listas (bullets/numeradas) sempre que possível.",
+            "Use tabelas para organizar comparações e dados.",
+            "Negrito em pontos estratégicos e importantes.",
+            "Ajuste a palavra-chave para melhor encaixe no contexto.",
+            "NUNCA use frases vagas ou genéricas (veja instruções globais).",
+            "SEMPRE enriqueça com dados, estatísticas, comparações reais.",
+            "FAQs internas: responda perguntas comuns dentro do texto.",
+            "Contexto geo-temporal: Brasil + mês/ano atual sempre que relevante.",
+            "Use formatação Markdown estruturada (H1, H2, H3).",
+            "Meta title (máx 60 chars) e meta description (máx 160 chars).",
+            "Palavra-chave NO H1, MAS NÃO no primeiro parágrafo da introdução.",
+            "Sempre responda em português do Brasil."
+        ]
+        
+        # Combinar instruções globais (NUNCA ESQUECER) com específicas
+        instrucoes_completas = [
+            "=" * 80,
+            "⚠️ INSTRUÇÕES GLOBAIS - NUNCA ESQUECER ⚠️",
+            "=" * 80,
+            instrucoes_globais,
+            "=" * 80,
+            "INSTRUÇÕES ESPECÍFICAS DO REDATOR:",
+            "=" * 80,
+            *instrucoes_redator
+        ]
+        
         self.agent = Agent(
-            name="Agente Redator",
+            name="Agente Redator - iGaming Brasil",
             model=OpenAIChat(id="gpt-4-turbo-preview"),
-            instructions=[
-                "Você é um redator profissional especializado em conteúdo otimizado para SEO.",
-                "Sempre crie conteúdo original, informativo e envolvente.",
-                "Use técnicas de copywriting para manter o leitor interessado.",
-                "Aplique boas práticas de SEO: headings estruturados (H1, H2, H3), parágrafos curtos, listas.",
-                "Inclua palavras-chave de forma natural no texto.",
-                "Escreva em tom profissional mas acessível.",
-                "Sempre responda em português do Brasil.",
-                "Use formatação Markdown para estruturar o conteúdo.",
-                "Inclua meta descriptions e títulos SEO-friendly."
-            ],
+            instructions=instrucoes_completas,
             markdown=True,
             add_datetime_to_context=True
         )
