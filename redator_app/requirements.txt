@@ -5,6 +5,15 @@ streamlit>=1.31.0
 
 # IA e Agents
 agno>=2.0.0
+groq>=0.4.0
+tavily-python>=0.3.0
+
+# LLM e APIs
+openai>=1.0.0
+replicate>=0.20.0
+
+# Database
+supabase>=2.0.0
 
 # Google APIs
 google-auth>=2.27.0
@@ -18,8 +27,4 @@ pillow>=10.2.0
 # Utilitários
 requests>=2.31.0
 python-dotenv>=1.0.0
-
-# APIs Externas (já configuradas no projeto principal)
-# groq (via agno)
-# tavily-python (via agno)
 
