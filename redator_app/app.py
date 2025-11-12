@@ -100,14 +100,54 @@ def main():
         if projetos_lista:
             # Criar botões para cada projeto
             for proj in projetos_lista:
-                if st.button(f"📂 {proj}", key=f"sidebar_proj_{proj}", use_container_width=True):
+                # Destaque visual para projeto selecionado
+                is_selected = st.session_state.get('projeto_selecionado') == proj
+                button_type = "primary" if is_selected else "secondary"
+                
+                if st.button(
+                    f"{'✓ ' if is_selected else ''}📂 {proj}", 
+                    key=f"sidebar_proj_{proj}", 
+                    use_container_width=True,
+                    type=button_type
+                ):
                     st.session_state.projeto_select = proj
                     st.session_state.projeto_selecionado = proj
+                    st.session_state.categoria_selecionada = None  # Reset categoria
                     st.rerun()
         else:
             st.info("Nenhum projeto criado ainda")
         
         st.markdown("---")
+        
+        # Seção de Categorias (só aparece se projeto selecionado)
+        if st.session_state.get('projeto_selecionado'):
+            projeto_atual = st.session_state.projeto_selecionado
+            st.subheader("📂 Categorias")
+            st.caption(f"Projeto: {projeto_atual}")
+            
+            categorias_lista = gerenciador.listar_categorias(projeto_atual)
+            
+            if categorias_lista:
+                # Criar botões para cada categoria
+                for cat in categorias_lista:
+                    # Destaque visual para categoria selecionada
+                    is_selected = st.session_state.get('categoria_selecionada') == cat
+                    button_type = "primary" if is_selected else "secondary"
+                    
+                    if st.button(
+                        f"{'✓ ' if is_selected else ''}📄 {cat}", 
+                        key=f"sidebar_cat_{cat}", 
+                        use_container_width=True,
+                        type=button_type
+                    ):
+                        st.session_state.categoria_select = cat
+                        st.session_state.categoria_selecionada = cat
+                        st.rerun()
+            else:
+                st.info("Nenhuma categoria criada ainda")
+            
+            st.markdown("---")
+        
         
         # Status das APIs (colapsável)
         with st.expander("🔧 Status das APIs"):
@@ -180,14 +220,24 @@ def main():
         
         categorias = gerenciador.listar_categorias(projeto)
         
+        # Se há uma categoria no session_state, usar como índice padrão
+        default_cat_index = 0
+        if st.session_state.get('categoria_selecionada') and st.session_state.categoria_selecionada in categorias:
+            default_cat_index = categorias.index(st.session_state.categoria_selecionada)
+        
         col1, col2 = st.columns([3, 1])
         
         with col1:
             categoria = st.selectbox(
                 "Escolha a categoria:",
                 options=categorias,
+                index=default_cat_index,
                 key="categoria_select"
             )
+            
+            # Atualizar session_state quando selectbox muda
+            if categoria:
+                st.session_state.categoria_selecionada = categoria
         
         with col2:
             if st.button("➕ Nova Categoria", use_container_width=True):
