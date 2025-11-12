@@ -29,6 +29,24 @@ st.set_page_config(
 # CSS customizado
 st.markdown("""
 <style>
+    /* Esconder ícones do GitHub e outros elementos do Streamlit */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stDeployButton {display: none;}
+    
+    /* Esconder link do GitHub no canto superior direito */
+    a[href*="github.com"] {
+        display: none !important;
+    }
+    
+    /* Esconder botões de compartilhamento */
+    button[title="Fork this app"],
+    button[title="View on GitHub"],
+    div[data-testid="stToolbar"] {
+        display: none !important;
+    }
+    
     .main-header {
         font-size: 2.5rem;
         font-weight: bold;
