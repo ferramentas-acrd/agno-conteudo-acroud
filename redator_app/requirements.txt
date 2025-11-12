@@ -1,0 +1,25 @@
+# Aplicação de Redação Automática - Dependências
+
+# Framework Web
+streamlit>=1.31.0
+
+# IA e Agents
+agno>=2.0.0
+
+# Google APIs
+google-auth>=2.27.0
+google-auth-oauthlib>=1.2.0
+google-auth-httplib2>=0.2.0
+google-api-python-client>=2.116.0
+
+# Processamento de Imagens
+pillow>=10.2.0
+
+# Utilitários
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# APIs Externas (já configuradas no projeto principal)
+# groq (via agno)
+# tavily-python (via agno)
+

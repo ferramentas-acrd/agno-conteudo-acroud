@@ -1,0 +1,35 @@
+# Credenciais e Segurança
+config/credentials.json
+config/token.json
+.env
+
+# Dados
+memoria/dados/
+
+# Imagens Geradas
+imagens_geradas/*.png
+imagens_geradas/*.jpg
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Streamlit
+.streamlit/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
