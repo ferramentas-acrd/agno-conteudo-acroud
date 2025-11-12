@@ -49,9 +49,15 @@ class AgentePesquisador:
             *instrucoes_pesquisador
         ]
         
+        # Obter API key
+        openai_key = os.getenv("OPENAI_API_KEY")
+        
         self.agent = Agent(
             name="Agente Pesquisador - iGaming Brasil",
-            model=OpenAIChat(id="gpt-4-turbo-preview"),
+            model=OpenAIChat(
+                id="gpt-4-turbo",
+                api_key=openai_key
+            ),
             tools=[TavilyTools()],
             instructions=instrucoes_completas,
             markdown=True,

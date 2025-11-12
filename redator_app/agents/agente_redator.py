@@ -57,9 +57,15 @@ class AgenteRedator:
             *instrucoes_redator
         ]
         
+        # Obter API key
+        openai_key = os.getenv("OPENAI_API_KEY")
+        
         self.agent = Agent(
             name="Agente Redator - iGaming Brasil",
-            model=OpenAIChat(id="gpt-4-turbo-preview"),
+            model=OpenAIChat(
+                id="gpt-4-turbo",
+                api_key=openai_key
+            ),
             instructions=instrucoes_completas,
             markdown=True,
             add_datetime_to_context=True
