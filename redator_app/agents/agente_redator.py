@@ -20,8 +20,15 @@ load_dotenv()
 class AgenteRedator:
     """Agente especializado em criar conteúdo otimizado para SEO - iGaming Brasil"""
     
-    def __init__(self):
+    def __init__(self, api_key=None):
         """Inicializa o agente redator com GPT-4 Turbo e instruções globais"""
+        
+        # Obter API key (parâmetro > ambiente > secrets)
+        if api_key is None:
+            api_key = os.getenv("OPENAI_API_KEY")
+        
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY não configurada! Configure em Settings → Secrets")
         
         # Obter instruções globais (ABSOLUTAS E IMUTÁVEIS)
         instrucoes_globais = get_instrucoes_globais()
@@ -57,14 +64,11 @@ class AgenteRedator:
             *instrucoes_redator
         ]
         
-        # Obter API key
-        openai_key = os.getenv("OPENAI_API_KEY")
-        
         self.agent = Agent(
             name="Agente Redator - iGaming Brasil",
             model=OpenAIChat(
                 id="gpt-4-turbo",
-                api_key=openai_key
+                api_key=api_key
             ),
             instructions=instrucoes_completas,
             markdown=True,
@@ -233,43 +237,4 @@ class AgenteRedator:
                 elif linha.startswith('META_DESCRIPTION:'):
                     resultado['meta_description'] = linha.replace('META_DESCRIPTION:', '').strip()
                 elif linha.startswith('RESUMO:'):
-                    resultado['resumo'] = linha.replace('RESUMO:', '').strip()
-                elif linha.startswith('CONTEUDO:'):
-                    capturando_conteudo = True
-                    continue
-                elif linha.startswith('PALAVRAS_CHAVE_SECUNDARIAS:'):
-                    capturando_conteudo = False
-                    palavras = linha.replace('PALAVRAS_CHAVE_SECUNDARIAS:', '').strip()
-                    resultado['palavras_chave_secundarias'] = [p.strip() for p in palavras.split(',')]
-                elif linha.startswith('ALT_TEXT_IMAGEM:'):
-                    resultado['alt_text_imagem'] = linha.replace('ALT_TEXT_IMAGEM:', '').strip()
-                elif capturando_conteudo:
-                    conteudo_principal.append(linha)
-            
-            if conteudo_principal:
-                resultado['conteudo'] = '\n'.join(conteudo_principal)
-            else:
-                resultado['conteudo'] = conteudo_bruto
-                
-        except Exception as e:
-            print(f"Erro ao parsear conteúdo: {e}")
-            resultado['conteudo'] = conteudo_bruto
-        
-        return resultado
-    
-    def _calcular_estatisticas(self, conteudo: str) -> dict:
-        """Calcula estatísticas do conteúdo"""
-        palavras = conteudo.split()
-        
-        return {
-            "total_palavras": len(palavras),
-            "total_caracteres": len(conteudo),
-            "total_paragrafos": conteudo.count('\n\n') + 1,
-            "tempo_leitura_min": round(len(palavras) / 200, 1)  # ~200 palavras/minuto
-        }
-    
-    def _obter_timestamp(self) -> str:
-        """Retorna o timestamp atual"""
-        from datetime import datetime
-        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
+                    resultad

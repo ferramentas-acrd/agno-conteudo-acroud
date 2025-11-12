@@ -21,8 +21,15 @@ load_dotenv()
 class AgentePesquisador:
     """Agente especializado em pesquisar informações atualizadas sobre temas"""
     
-    def __init__(self):
+    def __init__(self, api_key=None):
         """Inicializa o agente pesquisador com GPT-4 Turbo e ferramentas Tavily"""
+        
+        # Obter API key (parâmetro > ambiente > secrets)
+        if api_key is None:
+            api_key = os.getenv("OPENAI_API_KEY")
+        
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY não configurada! Configure em Settings → Secrets")
         
         # Obter instruções globais
         instrucoes_globais = get_instrucoes_globais()
@@ -49,14 +56,11 @@ class AgentePesquisador:
             *instrucoes_pesquisador
         ]
         
-        # Obter API key
-        openai_key = os.getenv("OPENAI_API_KEY")
-        
         self.agent = Agent(
             name="Agente Pesquisador - iGaming Brasil",
             model=OpenAIChat(
                 id="gpt-4-turbo",
-                api_key=openai_key
+                api_key=api_key
             ),
             tools=[TavilyTools()],
             instructions=instrucoes_completas,

@@ -315,16 +315,19 @@ def main():
                     status_container = st.container()
                     
                     with status_container:
+                        # Obter API key (já configurada no início do app.py)
+                        openai_key = os.getenv("OPENAI_API_KEY")
+                        
                         # PASSO 1: Pesquisa
                         with st.spinner("🔍 Pesquisando informações sobre a palavra-chave..."):
-                            pesquisador = AgentePesquisador()
+                            pesquisador = AgentePesquisador(api_key=openai_key)
                             pesquisa_resultado = pesquisador.pesquisar(palavra_chave)
                             st.session_state.pesquisa_realizada = pesquisa_resultado
                             st.success("✅ Pesquisa concluída!")
                         
                         # PASSO 2: Geração de Conteúdo
                         with st.spinner("✍️ Gerando conteúdo otimizado para SEO..."):
-                            redator = AgenteRedator()
+                            redator = AgenteRedator(api_key=openai_key)
                             memoria_categoria = gerenciador.obter_memoria_categoria(projeto, categoria)
                             
                             conteudo = redator.gerar_conteudo(
