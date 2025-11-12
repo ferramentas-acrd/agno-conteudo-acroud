@@ -8,14 +8,7 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Importar módulos customizados
-from memoria.gerenciador_memoria import GerenciadorMemoria
-from agents.agente_pesquisador import AgentePesquisador
-from agents.agente_redator import AgenteRedator
-from agents.gerador_imagem import GeradorImagem
-from utils.google_docs_handler import GoogleDocsHandler
-
-# Carregar variáveis de ambiente
+# Carregar variáveis de ambiente PRIMEIRO
 load_dotenv()
 
 # IMPORTANTE: No Streamlit Cloud, usar st.secrets ao invés de os.getenv
@@ -32,11 +25,18 @@ def get_api_key(key_name):
     return os.getenv(key_name)
 
 # Configurar environment variables para os agentes
-# Isso garante que funcionará tanto local quanto no Streamlit Cloud
+# ISSO DEVE SER FEITO ANTES DE IMPORTAR OS AGENTES!
 os.environ["OPENAI_API_KEY"] = get_api_key("OPENAI_API_KEY") or ""
 os.environ["TAVILY_API_KEY"] = get_api_key("TAVILY_API_KEY") or ""
 os.environ["SUPABASE_URL"] = get_api_key("SUPABASE_URL") or ""
 os.environ["SUPABASE_KEY"] = get_api_key("SUPABASE_KEY") or ""
+
+# AGORA SIM podemos importar os módulos customizados
+from memoria.gerenciador_memoria import GerenciadorMemoria
+from agents.agente_pesquisador import AgentePesquisador
+from agents.agente_redator import AgenteRedator
+from agents.gerador_imagem import GeradorImagem
+from utils.google_docs_handler import GoogleDocsHandler
 
 # Configuração da página
 st.set_page_config(
@@ -315,132 +315,13 @@ def main():
                     status_container = st.container()
                     
                     with status_container:
-                        # Obter API key (já configurada no início do app.py)
-                        openai_key = os.getenv("OPENAI_API_KEY")
-                        
                         # PASSO 1: Pesquisa
                         with st.spinner("🔍 Pesquisando informações sobre a palavra-chave..."):
-                            pesquisador = AgentePesquisador(api_key=openai_key)
+                            pesquisador = AgentePesquisador()
                             pesquisa_resultado = pesquisador.pesquisar(palavra_chave)
                             st.session_state.pesquisa_realizada = pesquisa_resultado
                             st.success("✅ Pesquisa concluída!")
                         
                         # PASSO 2: Geração de Conteúdo
                         with st.spinner("✍️ Gerando conteúdo otimizado para SEO..."):
-                            redator = AgenteRedator(api_key=openai_key)
-                            memoria_categoria = gerenciador.obter_memoria_categoria(projeto, categoria)
-                            
-                            conteudo = redator.gerar_conteudo(
-                                palavra_chave=palavra_chave,
-                                pesquisa_resultado=pesquisa_resultado,
-                                exemplo_categoria=memoria_categoria.get("exemplo", ""),
-                                regras_categoria=memoria_categoria.get("regras", "")
-                            )
-                            st.session_state.conteudo_gerado = conteudo
-                            st.success("✅ Conteúdo gerado!")
-                        
-                        # PASSO 3: Geração de Imagem
-                        with st.spinner("🎨 Gerando imagem para o conteúdo..."):
-                            gerador_img = GeradorImagem()
-                            
-                            # Preparar contexto rico para geração de imagem
-                            contexto_imagem = {
-                                'palavra_chave': palavra_chave,
-                                'categoria': categoria,
-                                'projeto': projeto,
-                                'meta_description': conteudo.get("meta_description", ""),
-                                'palavras_chave_secundarias': conteudo.get("palavras_chave_secundarias", [])
-                            }
-                            
-                            imagem_path = gerador_img.gerar_imagem(
-                                titulo=conteudo.get("titulo", palavra_chave),
-                                descricao=conteudo.get("resumo", ""),
-                                contexto=contexto_imagem
-                            )
-                            st.session_state.imagem_gerada = imagem_path
-                            st.success("✅ Imagem gerada!")
-                        
-                        # PASSO 4: Salvar no histórico (Supabase se configurado)
-                        if gerenciador.usar_supabase:
-                            with st.spinner("💾 Salvando no histórico..."):
-                                conteudo_completo = {
-                                    **conteudo,
-                                    "imagem_path": imagem_path
-                                }
-                                gerenciador.salvar_conteudo_gerado(
-                                    projeto, categoria, palavra_chave, conteudo_completo
-                                )
-                                st.success("✅ Salvo no histórico!")
-                        
-                        st.balloons()
-                        st.success("🎉 Todo o conteúdo foi gerado com sucesso!")
-            
-            # Mostrar resultado
-            if st.session_state.conteudo_gerado:
-                st.markdown("---")
-                st.markdown('<div class="step-header">📄 Etapa 4: Revisão do Conteúdo</div>', unsafe_allow_html=True)
-                
-                conteudo = st.session_state.conteudo_gerado
-                
-                # Mostrar imagem
-                if st.session_state.imagem_gerada:
-                    st.image(st.session_state.imagem_gerada, use_container_width=True)
-                
-                # Mostrar conteúdo
-                st.markdown(f"### {conteudo.get('titulo', '')}")
-                st.markdown(conteudo.get('conteudo_formatado', ''))
-                
-                # Botões de ação
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    if st.button("📥 Salvar no Google Docs", type="primary", use_container_width=True):
-                        with st.spinner("Salvando no Google Docs..."):
-                            try:
-                                docs_handler = GoogleDocsHandler()
-                                doc_url = docs_handler.criar_documento(
-                                    titulo=conteudo.get('titulo', ''),
-                                    conteudo=conteudo.get('conteudo_formatado', ''),
-                                    imagem_path=st.session_state.imagem_gerada
-                                )
-                                st.success(f"✅ Documento criado com sucesso!")
-                                st.markdown(f"[🔗 Abrir documento no Google Docs]({doc_url})")
-                            except Exception as e:
-                                st.error(f"Erro ao salvar no Google Docs: {str(e)}")
-                
-                with col2:
-                    # Baixar como HTML
-                    html_content = f"""
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>{conteudo.get('titulo', '')}</title>
-                        <style>
-                            body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }}
-                            img {{ max-width: 100%; height: auto; }}
-                            h1, h2, h3 {{ color: #333; }}
-                        </style>
-                    </head>
-                    <body>
-                        {conteudo.get('conteudo_formatado', '')}
-                    </body>
-                    </html>
-                    """
-                    st.download_button(
-                        label="💾 Baixar HTML",
-                        data=html_content,
-                        file_name=f"{palavra_chave.replace(' ', '_')}.html",
-                        mime="text/html",
-                        use_container_width=True
-                    )
-                
-                with col3:
-                    if st.button("🔄 Regenerar Conteúdo", use_container_width=True):
-                        st.session_state.conteudo_gerado = None
-                        st.session_state.imagem_gerada = None
-                        st.rerun()
-
-if __name__ == "__main__":
-    main()
-
+                            redator = Agente

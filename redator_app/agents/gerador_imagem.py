@@ -403,3 +403,137 @@ Context: {descricao if descricao else palavra_chave}"""
         
         headers = {
             "X-RapidAPI-Key": api_key,
+            "X-RapidAPI-Host": rapidapi_host,
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "prompt": prompt,
+            "width": self.largura,
+            "height": self.altura
+        }
+        
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Baixar imagem (ajustar conforme formato da API)
+            if 'url' in data or 'image_url' in data:
+                image_url = data.get('url') or data.get('image_url')
+                return self._baixar_imagem(image_url, titulo)
+        
+        raise Exception(f"API retornou erro: {response.status_code}")
+    
+    def _baixar_imagem(self, url: str, titulo: str) -> str:
+        """Baixa imagem de uma URL"""
+        response = requests.get(url, timeout=30)
+        
+        if response.status_code == 200:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"{self._sanitizar_nome(titulo)}_{timestamp}.png"
+            filepath = self.output_dir / filename
+            
+            with open(filepath, 'wb') as f:
+                f.write(response.content)
+            
+            return str(filepath)
+        
+        raise Exception(f"Erro ao baixar imagem: {response.status_code}")
+    
+    def _gerar_imagem_texto(self, titulo: str, descricao: str = "") -> str:
+        """
+        Gera uma imagem com texto estilizado (fallback)
+        Cria uma imagem profissional com gradiente e texto
+        """
+        
+        # Criar imagem com gradiente
+        img = Image.new('RGB', (self.largura, self.altura), color='white')
+        draw = ImageDraw.Draw(img)
+        
+        # Criar gradiente
+        for i in range(self.altura):
+            # Gradiente azul profissional
+            r = int(25 + (i / self.altura) * 30)
+            g = int(100 + (i / self.altura) * 50)
+            b = int(200 + (i / self.altura) * 55)
+            draw.rectangle([(0, i), (self.largura, i+1)], fill=(r, g, b))
+        
+        # Tentar carregar fonte (ou usar padrão)
+        try:
+            # Usar fonte do sistema
+            fonte_titulo = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 70)
+            fonte_desc = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 30)
+        except:
+            fonte_titulo = ImageFont.load_default()
+            fonte_desc = ImageFont.load_default()
+        
+        # Quebrar título em linhas
+        palavras_titulo = titulo.split()
+        linhas_titulo = []
+        linha_atual = []
+        
+        for palavra in palavras_titulo:
+            linha_teste = ' '.join(linha_atual + [palavra])
+            bbox = draw.textbbox((0, 0), linha_teste, font=fonte_titulo)
+            if bbox[2] - bbox[0] < self.largura - 100:
+                linha_atual.append(palavra)
+            else:
+                if linha_atual:
+                    linhas_titulo.append(' '.join(linha_atual))
+                linha_atual = [palavra]
+        
+        if linha_atual:
+            linhas_titulo.append(' '.join(linha_atual))
+        
+        # Limitar a 3 linhas
+        linhas_titulo = linhas_titulo[:3]
+        
+        # Calcular posição vertical para centralizar
+        altura_total_texto = len(linhas_titulo) * 80
+        y_inicial = (self.altura - altura_total_texto) // 2
+        
+        # Desenhar título
+        y_pos = y_inicial
+        for linha in linhas_titulo:
+            bbox = draw.textbbox((0, 0), linha, font=fonte_titulo)
+            largura_texto = bbox[2] - bbox[0]
+            x_pos = (self.largura - largura_texto) // 2
+            
+            # Sombra do texto
+            draw.text((x_pos + 3, y_pos + 3), linha, font=fonte_titulo, fill=(0, 0, 0, 128))
+            # Texto principal
+            draw.text((x_pos, y_pos), linha, font=fonte_titulo, fill='white')
+            y_pos += 80
+        
+        # Adicionar borda decorativa
+        draw.rectangle([(50, 50), (self.largura-50, self.altura-50)], outline='white', width=5)
+        
+        # Salvar imagem
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{self._sanitizar_nome(titulo)}_{timestamp}.png"
+        filepath = self.output_dir / filename
+        
+        img.save(filepath, 'PNG', quality=95)
+        
+        return str(filepath)
+    
+    def redimensionar_imagem(self, caminho_imagem: str) -> str:
+        """Redimensiona uma imagem existente para 1200x630"""
+        img = Image.open(caminho_imagem)
+        img_redimensionada = img.resize((self.largura, self.altura), Image.Resampling.LANCZOS)
+        
+        # Salvar com novo nome
+        path = Path(caminho_imagem)
+        novo_caminho = path.parent / f"{path.stem}_1200x630{path.suffix}"
+        img_redimensionada.save(novo_caminho)
+        
+        return str(novo_caminho)
+    
+    def _sanitizar_nome(self, nome: str) -> str:
+        """Remove caracteres especiais do nome do arquivo"""
+        import re
+        nome_limpo = re.sub(r'[^\w\s-]', '', nome)
+        nome_limpo = re.sub(r'[-\s]+', '_', nome_limpo)
+        return nome_limpo[:50]  # Limitar tamanho
+

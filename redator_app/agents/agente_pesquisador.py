@@ -21,13 +21,11 @@ load_dotenv()
 class AgentePesquisador:
     """Agente especializado em pesquisar informações atualizadas sobre temas"""
     
-    def __init__(self, api_key=None):
+    def __init__(self):
         """Inicializa o agente pesquisador com GPT-4 Turbo e ferramentas Tavily"""
         
-        # Obter API key (parâmetro > ambiente > secrets)
-        if api_key is None:
-            api_key = os.getenv("OPENAI_API_KEY")
-        
+        # Verificar se API key está configurada
+        api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY não configurada! Configure em Settings → Secrets")
         
@@ -132,42 +130,4 @@ class AgentePesquisador:
                 "timestamp": self._obter_timestamp()
             }
     
-    def pesquisar_especifico(self, pergunta: str) -> str:
-        """
-        Faz uma pergunta específica ao agente pesquisador
-        
-        Args:
-            pergunta: Pergunta específica a ser respondida
-            
-        Returns:
-            str com a resposta
-        """
-        try:
-            response = self.agent.run(pergunta)
-            return response.content if hasattr(response, 'content') else str(response)
-        except Exception as e:
-            return f"Erro ao pesquisar: {str(e)}"
-    
-    def _extrair_fontes(self, response) -> list:
-        """Extrai URLs das fontes mencionadas na resposta"""
-        fontes = []
-        try:
-            conteudo = response.content if hasattr(response, 'content') else str(response)
-            
-            # Procurar por URLs no conteúdo
-            import re
-            urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', conteudo)
-            
-            for url in urls:
-                if url not in fontes:
-                    fontes.append(url)
-        except:
-            pass
-        
-        return fontes
-    
-    def _obter_timestamp(self) -> str:
-        """Retorna o timestamp atual"""
-        from datetime import datetime
-        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
+    de
