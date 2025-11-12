@@ -6,7 +6,7 @@ Usa GPT-4 Turbo da OpenAI para análise inteligente
 
 import os
 from agno.agent import Agent
-from agno.models.openai import OpenAI
+from agno.models import OpenAIChat
 from agno.tools.tavily import TavilyTools
 from dotenv import load_dotenv
 
@@ -19,7 +19,7 @@ class AgentePesquisador:
         """Inicializa o agente pesquisador com GPT-4 Turbo e ferramentas Tavily"""
         self.agent = Agent(
             name="Agente Pesquisador",
-            model=OpenAI(id="gpt-4-turbo-preview"),
+            model=OpenAIChat(id="gpt-4-turbo-preview"),
             tools=[TavilyTools()],
             instructions=[
                 "Você é um pesquisador especializado em coletar informações detalhadas e atualizadas.",

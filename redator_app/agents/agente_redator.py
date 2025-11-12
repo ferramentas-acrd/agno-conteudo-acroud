@@ -6,7 +6,7 @@ Usa GPT-4 Turbo da OpenAI para máxima qualidade
 
 import os
 from agno.agent import Agent
-from agno.models.openai import OpenAI
+from agno.models import OpenAIChat
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,7 +18,7 @@ class AgenteRedator:
         """Inicializa o agente redator com GPT-4 Turbo"""
         self.agent = Agent(
             name="Agente Redator",
-            model=OpenAI(id="gpt-4-turbo-preview"),
+            model=OpenAIChat(id="gpt-4-turbo-preview"),
             instructions=[
                 "Você é um redator profissional especializado em conteúdo otimizado para SEO.",
                 "Sempre crie conteúdo original, informativo e envolvente.",
