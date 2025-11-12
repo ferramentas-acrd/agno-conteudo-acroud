@@ -18,6 +18,26 @@ from utils.google_docs_handler import GoogleDocsHandler
 # Carregar variáveis de ambiente
 load_dotenv()
 
+# IMPORTANTE: No Streamlit Cloud, usar st.secrets ao invés de os.getenv
+# Tentar carregar de st.secrets primeiro, depois de os.getenv como fallback
+def get_api_key(key_name):
+    """Pega API key de st.secrets (Streamlit Cloud) ou os.getenv (local)"""
+    try:
+        # Tentar st.secrets primeiro (Streamlit Cloud)
+        if hasattr(st, 'secrets') and key_name in st.secrets:
+            return st.secrets[key_name]
+    except:
+        pass
+    # Fallback para variável de ambiente (local)
+    return os.getenv(key_name)
+
+# Configurar environment variables para os agentes
+# Isso garante que funcionará tanto local quanto no Streamlit Cloud
+os.environ["OPENAI_API_KEY"] = get_api_key("OPENAI_API_KEY") or ""
+os.environ["TAVILY_API_KEY"] = get_api_key("TAVILY_API_KEY") or ""
+os.environ["SUPABASE_URL"] = get_api_key("SUPABASE_URL") or ""
+os.environ["SUPABASE_KEY"] = get_api_key("SUPABASE_KEY") or ""
+
 # Configuração da página
 st.set_page_config(
     page_title="Redator Automático IA",
@@ -150,7 +170,7 @@ def main():
         
         
         # Status das APIs (colapsável)
-        with st.expander("🔧 Status das APIs"):
+        with st.expander("🔧 Status das APIs", expanded=False):
             apis_status = {
                 "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
                 "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
@@ -159,10 +179,16 @@ def main():
             }
             
             for api_name, api_value in apis_status.items():
-                if api_value:
+                if api_value and len(str(api_value)) > 10:
+                    # Mostrar primeiros caracteres para debug
+                    preview = str(api_value)[:15] + "..." if len(str(api_value)) > 15 else str(api_value)
                     st.success(f"✅ {api_name}")
+                    if st.checkbox(f"Ver {api_name[:10]}", key=f"show_{api_name}"):
+                        st.code(preview)
                 else:
                     st.error(f"❌ {api_name}")
+                    if api_name == "OPENAI_API_KEY":
+                        st.caption("⚠️ Verifique se a chave foi configurada corretamente em Settings → Secrets")
         
         st.markdown("---")
         
