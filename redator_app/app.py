@@ -86,25 +86,43 @@ def main():
     st.markdown('<div class="main-header">✍️ Redator Automático com IA</div>', unsafe_allow_html=True)
     st.markdown("---")
     
-    # Sidebar - Configurações
+    # Inicializar gerenciador de memória
+    gerenciador = GerenciadorMemoria()
+    
+    # Sidebar - Menu lateral
     with st.sidebar:
-        st.header("⚙️ Configurações")
+        st.header("📋 Menu")
         
-        # Verificar APIs configuradas
-        st.subheader("📡 Status das APIs")
+        # Seção de Projetos
+        st.subheader("📁 Projetos")
+        projetos_lista = gerenciador.listar_projetos()
         
-        apis_status = {
-            "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
-            "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
-            "SUPABASE_URL": os.getenv("SUPABASE_URL"),
-            "GOOGLE_CREDENTIALS": os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
-        }
+        if projetos_lista:
+            # Criar botões para cada projeto
+            for proj in projetos_lista:
+                if st.button(f"📂 {proj}", key=f"sidebar_proj_{proj}", use_container_width=True):
+                    st.session_state.projeto_select = proj
+                    st.session_state.projeto_selecionado = proj
+                    st.rerun()
+        else:
+            st.info("Nenhum projeto criado ainda")
         
-        for api_name, api_value in apis_status.items():
-            if api_value:
-                st.success(f"✅ {api_name}")
-            else:
-                st.error(f"❌ {api_name}")
+        st.markdown("---")
+        
+        # Status das APIs (colapsável)
+        with st.expander("🔧 Status das APIs"):
+            apis_status = {
+                "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
+                "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
+                "SUPABASE_URL": os.getenv("SUPABASE_URL"),
+                "GOOGLE_CREDENTIALS": os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
+            }
+            
+            for api_name, api_value in apis_status.items():
+                if api_value:
+                    st.success(f"✅ {api_name}")
+                else:
+                    st.error(f"❌ {api_name}")
         
         st.markdown("---")
         
@@ -114,13 +132,15 @@ def main():
                 del st.session_state[key]
             st.rerun()
     
-    # Inicializar gerenciador de memória
-    gerenciador = GerenciadorMemoria()
-    
     # ETAPA 1: Seleção do Projeto
     st.markdown('<div class="step-header">📁 Etapa 1: Selecione o Projeto</div>', unsafe_allow_html=True)
     
     projetos = gerenciador.listar_projetos()
+    
+    # Se há um projeto no session_state, usar como índice padrão
+    default_index = 0
+    if st.session_state.get('projeto_selecionado') and st.session_state.projeto_selecionado in projetos:
+        default_index = projetos.index(st.session_state.projeto_selecionado)
     
     col1, col2 = st.columns([3, 1])
     
@@ -128,8 +148,13 @@ def main():
         projeto = st.selectbox(
             "Escolha o projeto:",
             options=projetos,
+            index=default_index,
             key="projeto_select"
         )
+        
+        # Atualizar session_state quando selectbox muda
+        if projeto:
+            st.session_state.projeto_selecionado = projeto
     
     with col2:
         if st.button("➕ Novo Projeto", use_container_width=True):
