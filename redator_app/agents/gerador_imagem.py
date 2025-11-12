@@ -29,9 +29,9 @@ class GeradorImagem:
         self.openai_key = os.getenv("OPENAI_API_KEY")
         self.replicate_key = os.getenv("REPLICATE_API_TOKEN")
     
-    def gerar_imagem(self, titulo: str, descricao: str = "") -> str:
+    def gerar_imagem(self, titulo: str, descricao: str = "", contexto: dict = None) -> str:
         """
-        Gera uma imagem para o artigo
+        Gera uma imagem para o artigo usando contexto rico
         
         Prioridade de APIs:
         1. DALL-E 3 (OpenAI) - Melhor qualidade
@@ -41,6 +41,7 @@ class GeradorImagem:
         Args:
             titulo: Título do artigo
             descricao: Descrição ou resumo
+            contexto: Dict com dados extras (palavra_chave, categoria, resumo completo, etc)
             
         Returns:
             str: caminho da imagem gerada
@@ -48,11 +49,15 @@ class GeradorImagem:
         
         print(f"🎨 Gerando imagem para: {titulo}")
         
+        # Preparar contexto enriquecido
+        if contexto is None:
+            contexto = {}
+        
         # Tentar DALL-E 3 primeiro
         if self.openai_key:
             try:
                 print("→ Usando DALL-E 3 (OpenAI)...")
-                return self._gerar_com_dalle3(titulo, descricao)
+                return self._gerar_com_dalle3(titulo, descricao, contexto)
             except Exception as e:
                 print(f"⚠️ DALL-E 3 falhou: {e}")
         
@@ -60,7 +65,7 @@ class GeradorImagem:
         if self.replicate_key:
             try:
                 print("→ Usando Replicate (Flux)...")
-                return self._gerar_com_replicate(titulo, descricao)
+                return self._gerar_com_replicate(titulo, descricao, contexto)
             except Exception as e:
                 print(f"⚠️ Replicate falhou: {e}")
         
@@ -68,7 +73,7 @@ class GeradorImagem:
         print("→ Usando gerador de texto estilizado...")
         return self._gerar_imagem_texto(titulo, descricao)
     
-    def _gerar_com_dalle3(self, titulo: str, descricao: str) -> str:
+    def _gerar_com_dalle3(self, titulo: str, descricao: str, contexto: dict = None) -> str:
         """
         Gera imagem usando DALL-E 3 da OpenAI
         
@@ -80,8 +85,11 @@ class GeradorImagem:
         Custo: ~$0.04 por imagem (1024x1024) ou $0.08 (1792x1024)
         """
         
-        # Criar prompt otimizado
-        prompt = self._criar_prompt_dalle(titulo, descricao)
+        if contexto is None:
+            contexto = {}
+        
+        # Criar prompt otimizado com contexto rico
+        prompt = self._criar_prompt_dalle(titulo, descricao, contexto)
         
         url = "https://api.openai.com/v1/images/generations"
         
@@ -110,7 +118,7 @@ class GeradorImagem:
         else:
             raise Exception(f"OpenAI API error: {response.status_code} - {response.text}")
     
-    def _gerar_com_replicate(self, titulo: str, descricao: str) -> str:
+    def _gerar_com_replicate(self, titulo: str, descricao: str, contexto: dict = None) -> str:
         """
         Gera imagem usando Replicate (Flux ou Stable Diffusion)
         
@@ -125,8 +133,11 @@ class GeradorImagem:
         - stability-ai/sdxl (Stable Diffusion XL)
         """
         
-        # Criar prompt otimizado
-        prompt = self._criar_prompt_replicate(titulo, descricao)
+        if contexto is None:
+            contexto = {}
+        
+        # Criar prompt otimizado com contexto rico
+        prompt = self._criar_prompt_replicate(titulo, descricao, contexto)
         
         url = "https://api.replicate.com/v1/predictions"
         
@@ -187,31 +198,139 @@ class GeradorImagem:
         
         raise Exception("Timeout waiting for image generation")
     
-    def _criar_prompt_dalle(self, titulo: str, descricao: str) -> str:
-        """Cria prompt otimizado para DALL-E 3"""
-        prompt = f"""Create a professional featured image for a blog article.
+    def _criar_prompt_dalle(self, titulo: str, descricao: str, contexto: dict = None) -> str:
+        """
+        Cria prompt otimizado para DALL-E 3 com contexto rico
+        
+        Args:
+            titulo: Título do artigo
+            descricao: Resumo/meta description
+            contexto: Dict com palavra_chave, categoria, etc
+        """
+        
+        if contexto is None:
+            contexto = {}
+        
+        palavra_chave = contexto.get('palavra_chave', titulo)
+        categoria = contexto.get('categoria', 'artigo')
+        
+        # Detectar tema específico para prompts mais relevantes
+        tema_apostas = any(word in titulo.lower() for word in ['aposta', 'bet', 'palpite', 'odd', 'cassino', 'jogo'])
+        tema_esportes = any(word in titulo.lower() for word in ['futebol', 'copa', 'brasileirão', 'campeonato', 'time'])
+        
+        # Construir prompt contextualizado
+        if tema_apostas and tema_esportes:
+            visual_elements = """
+Visual Elements:
+- Stadium or soccer field in the background
+- Modern smartphone showing betting odds/app
+- Brazilian flag colors (green and yellow) subtly integrated
+- Professional sports betting atmosphere
+- Dynamic action and energy
+- No text or logos, pure visual representation"""
+        elif tema_apostas:
+            visual_elements = """
+Visual Elements:
+- Modern digital casino or betting platform interface
+- Smartphone/tablet with betting app
+- Brazilian colors (green and yellow) incorporated tastefully
+- Professional, trustworthy atmosphere
+- Clean, modern design
+- No text or logos, pure visual representation"""
+        elif tema_esportes:
+            visual_elements = """
+Visual Elements:
+- Brazilian soccer/sports scene
+- Stadium atmosphere
+- Action-packed sports moment
+- Modern, professional photography style
+- Dynamic movement and energy
+- No text or logos, pure visual representation"""
+        else:
+            visual_elements = """
+Visual Elements:
+- Modern, professional blog header
+- Clean and minimalist design
+- Brazilian context when relevant
+- High-quality photography style
+- Professional and trustworthy
+- No text or logos, pure visual representation"""
+        
+        prompt = f"""Create a professional featured image for a Brazilian blog article about iGaming and sports betting.
 
 Article Title: {titulo}
 
+Article Context: {descricao if descricao else palavra_chave}
+
+Category: {categoria}
+
+{visual_elements}
+
 Style Requirements:
-- Modern and clean design
-- Professional and eye-catching
-- Suitable for social media (landscape orientation)
-- High quality and detailed
-- Appropriate for the article topic
+- Photorealistic, high-quality, professional
+- Landscape orientation (suitable for 1200x630px)
+- Modern, clean, and sophisticated
+- Suitable for social media and blog header
+- Eye-catching but professional
+- Brazilian context and culture
+- NO TEXT, NO LOGOS, NO BRAND NAMES in the image
+- Focus on visual storytelling
 
-Context: {descricao if descricao else 'General article about ' + titulo}
+Color Palette: Modern and vibrant, professional tones, can include Brazilian colors (green/yellow) subtly
 
-Make it visually appealing and relevant to the article subject."""
+Make it visually stunning, relevant to the subject, and appropriate for a professional sports betting/iGaming publication in Brazil."""
         
         return prompt
     
-    def _criar_prompt_replicate(self, titulo: str, descricao: str) -> str:
-        """Cria prompt otimizado para Replicate (Flux/Stable Diffusion)"""
-        prompt = f"""Professional featured image for article: {titulo}. 
-Modern, clean design, high quality, detailed, professional photography style, 
-trending on artstation, 8k resolution, vibrant colors, suitable for blog header.
-{descricao if descricao else ''}"""
+    def _criar_prompt_replicate(self, titulo: str, descricao: str, contexto: dict = None) -> str:
+        """
+        Cria prompt otimizado para Replicate (Flux/Stable Diffusion)
+        
+        Args:
+            titulo: Título do artigo
+            descricao: Resumo/meta description
+            contexto: Dict com palavra_chave, categoria, etc
+        """
+        
+        if contexto is None:
+            contexto = {}
+        
+        palavra_chave = contexto.get('palavra_chave', titulo)
+        categoria = contexto.get('categoria', 'artigo')
+        
+        # Detectar tema específico
+        tema_apostas = any(word in titulo.lower() for word in ['aposta', 'bet', 'palpite', 'odd', 'cassino', 'jogo'])
+        tema_esportes = any(word in titulo.lower() for word in ['futebol', 'copa', 'brasileirão', 'campeonato', 'time'])
+        
+        # Construir prompt (Replicate precisa de prompts mais diretos)
+        if tema_apostas and tema_esportes:
+            prompt = f"""Professional sports betting featured image for Brazilian blog article: {titulo}.
+Photorealistic, soccer stadium in background, modern smartphone with betting app, 
+Brazilian flag colors green and yellow subtly integrated, dynamic action, 
+professional atmosphere, high quality, 8k, trending on artstation, 
+landscape orientation, no text, no logos, clean modern design.
+Context: {descricao if descricao else palavra_chave}"""
+        elif tema_apostas:
+            prompt = f"""Professional online betting/casino featured image for Brazilian blog: {titulo}.
+Photorealistic, modern digital betting platform, smartphone with casino app,
+Brazilian colors green and yellow, professional trustworthy atmosphere,
+high quality, 8k, clean modern design, landscape orientation,
+no text, no logos, suitable for blog header.
+Context: {descricao if descricao else palavra_chave}"""
+        elif tema_esportes:
+            prompt = f"""Professional Brazilian sports featured image for article: {titulo}.
+Photorealistic, soccer/sports stadium scene, dynamic action moment,
+modern professional photography, Brazilian context, vibrant colors,
+high quality, 8k, landscape orientation, no text, no logos, 
+suitable for blog header.
+Context: {descricao if descricao else palavra_chave}"""
+        else:
+            prompt = f"""Professional featured image for Brazilian blog article: {titulo}. 
+Photorealistic, modern clean design, high quality photography, 
+professional and sophisticated, Brazilian context, vibrant colors,
+8k resolution, landscape orientation, no text, no logos,
+trending on artstation, suitable for blog header.
+Context: {descricao if descricao else palavra_chave}"""
         
         return prompt
     

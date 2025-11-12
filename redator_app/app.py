@@ -313,9 +313,20 @@ def main():
                         # PASSO 3: Geração de Imagem
                         with st.spinner("🎨 Gerando imagem para o conteúdo..."):
                             gerador_img = GeradorImagem()
+                            
+                            # Preparar contexto rico para geração de imagem
+                            contexto_imagem = {
+                                'palavra_chave': palavra_chave,
+                                'categoria': categoria,
+                                'projeto': projeto,
+                                'meta_description': conteudo.get("meta_description", ""),
+                                'palavras_chave_secundarias': conteudo.get("palavras_chave_secundarias", [])
+                            }
+                            
                             imagem_path = gerador_img.gerar_imagem(
                                 titulo=conteudo.get("titulo", palavra_chave),
-                                descricao=conteudo.get("resumo", "")
+                                descricao=conteudo.get("resumo", ""),
+                                contexto=contexto_imagem
                             )
                             st.session_state.imagem_gerada = imagem_path
                             st.success("✅ Imagem gerada!")
