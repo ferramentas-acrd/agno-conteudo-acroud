@@ -138,3 +138,4 @@ $RECYCLE.BIN/
 *.bak
 *.backup
 *~.nib
+agent-ui/

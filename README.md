@@ -15,7 +15,7 @@ O **Agno Conteúdo ACROUD** é uma plataforma completa para geração automatiza
 ### ✨ Principais Funcionalidades
 
 - 🔍 **Pesquisa Automática:** Busca informações atualizadas na web usando Tavily API
-- ✍️ **Redação com IA:** Gera conteúdo otimizado para SEO usando Groq (Llama 3.3 70B)
+- ✍️ **Redação com IA:** Gera conteúdo otimizado para SEO usando GPT-4 Turbo (OpenAI)
 - 🎨 **Geração de Imagens:** Suporta DALL-E 3, Replicate (Flux) e fallback com texto
 - 💾 **Armazenamento Híbrido:** Local (JSON) ou nuvem (Supabase PostgreSQL)
 - 📂 **Multi-Projetos:** Organize conteúdos por projetos e categorias
@@ -88,12 +88,14 @@ agno-conteudo-acroud/
 
 ### Obrigatórias
 
-#### 1. Groq API (LLM)
-- **Onde:** https://console.groq.com
+#### 1. OpenAI API (GPT-4 Turbo + DALL-E 3)
+
+- **Onde:** https://platform.openai.com
 - **Como:** Criar conta → API Keys → Criar nova key
-- **Custo:** Gratuito (até 14.400 requisições/dia)
+- **Custo:** Pago (~$0.14 por artigo + $0.04 por imagem)
 
 #### 2. Tavily API (Pesquisa)
+
 - **Onde:** https://tavily.com
 - **Como:** Sign up → Dashboard → Copiar API Key
 - **Custo:** Gratuito (1.000 pesquisas/mês)
@@ -101,16 +103,19 @@ agno-conteudo-acroud/
 ### Opcionais
 
 #### 3. Supabase (Histórico em Nuvem)
+
 - **Onde:** https://supabase.com
 - **Guia:** `redator_app/SUPABASE_SETUP.md`
 - **Custo:** Gratuito (500MB)
 
 #### 4. OpenAI / Replicate (Imagens IA)
+
 - **OpenAI:** https://platform.openai.com
 - **Replicate:** https://replicate.com
 - **Guia:** `redator_app/CONFIGURACAO_IMAGENS_IA.md`
 
 #### 5. Google Cloud (Docs API)
+
 - **Onde:** https://console.cloud.google.com
 - **Guia:** `redator_app/GOOGLE_API_SETUP.md`
 
@@ -122,7 +127,7 @@ Crie um arquivo `.env` na raiz:
 
 ```bash
 # === OBRIGATÓRIAS ===
-GROQ_API_KEY=gsk_...
+OPENAI_API_KEY=sk-proj-...
 TAVILY_API_KEY=tvly-...
 
 # === OPCIONAIS ===
@@ -131,8 +136,7 @@ TAVILY_API_KEY=tvly-...
 SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_KEY=eyJhbG...
 
-# Imagens com IA
-OPENAI_API_KEY=sk-...
+# Replicate (Imagens alternativas - Flux)
 REPLICATE_API_TOKEN=r8_...
 
 # Google Docs
@@ -246,10 +250,9 @@ Veja documentação completa: `redator_app/CONFIGURACAO_IMAGENS_IA.md`
 
 ### IA & APIs
 
-- **[Groq](https://groq.com)** - LLM (Llama 3.3 70B)
+- **[OpenAI](https://openai.com)** - GPT-4 Turbo + DALL-E 3
 - **[Tavily](https://tavily.com)** - Busca web para IA
-- **[OpenAI](https://openai.com)** - DALL-E 3
-- **[Replicate](https://replicate.com)** - Flux models
+- **[Replicate](https://replicate.com)** - Flux models (alternativa)
 
 ### Dados
 
@@ -303,7 +306,7 @@ Abra uma [issue no GitHub](https://github.com/ferramentas-acrd/agno-conteudo-acr
 
 ## 🤝 Contribuindo
 
-Contribuições são bem-vindas! 
+Contribuições são bem-vindas!
 
 1. Fork o projeto
 2. Crie uma branch: `git checkout -b feature/nova-funcionalidade`
@@ -366,4 +369,3 @@ Este projeto está sob a licença MIT. Veja [LICENSE](LICENSE) para mais detalhe
 [⬆ Voltar ao topo](#-agno-conteúdo-acroud---redator-automático-com-ia)
 
 </div>
-

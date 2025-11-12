@@ -94,7 +94,7 @@ def main():
         st.subheader("📡 Status das APIs")
         
         apis_status = {
-            "GROQ_API_KEY": os.getenv("GROQ_API_KEY"),
+            "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
             "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
             "SUPABASE_URL": os.getenv("SUPABASE_URL"),
             "GOOGLE_CREDENTIALS": os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),

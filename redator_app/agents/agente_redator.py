@@ -1,11 +1,12 @@
 """
 Agente Redator
 Cria conteúdo otimizado para SEO com formatação profissional
+Usa GPT-4 Turbo da OpenAI para máxima qualidade
 """
 
 import os
 from agno.agent import Agent
-from agno.models.groq import Groq
+from agno.models.openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -14,10 +15,10 @@ class AgenteRedator:
     """Agente especializado em criar conteúdo otimizado para SEO"""
     
     def __init__(self):
-        """Inicializa o agente redator"""
+        """Inicializa o agente redator com GPT-4 Turbo"""
         self.agent = Agent(
             name="Agente Redator",
-            model=Groq(id="llama-3.3-70b-versatile"),
+            model=OpenAI(id="gpt-4-turbo-preview"),
             instructions=[
                 "Você é um redator profissional especializado em conteúdo otimizado para SEO.",
                 "Sempre crie conteúdo original, informativo e envolvente.",

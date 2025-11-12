@@ -1,11 +1,12 @@
 """
 Agente Pesquisador
 Realiza pesquisas detalhadas usando Tavily para coletar informações atualizadas
+Usa GPT-4 Turbo da OpenAI para análise inteligente
 """
 
 import os
 from agno.agent import Agent
-from agno.models.groq import Groq
+from agno.models.openai import OpenAI
 from agno.tools.tavily import TavilyTools
 from dotenv import load_dotenv
 
@@ -15,10 +16,10 @@ class AgentePesquisador:
     """Agente especializado em pesquisar informações atualizadas sobre temas"""
     
     def __init__(self):
-        """Inicializa o agente pesquisador com modelo Groq e ferramentas Tavily"""
+        """Inicializa o agente pesquisador com GPT-4 Turbo e ferramentas Tavily"""
         self.agent = Agent(
             name="Agente Pesquisador",
-            model=Groq(id="llama-3.3-70b-versatile"),
+            model=OpenAI(id="gpt-4-turbo-preview"),
             tools=[TavilyTools()],
             instructions=[
                 "Você é um pesquisador especializado em coletar informações detalhadas e atualizadas.",
